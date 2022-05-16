@@ -18,7 +18,7 @@ local ResupplyItems = {
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.3 },
         { class = "item_healthvial", weight = 0.3 },
-        { class = "item_hlvr_grenade_frag", weight = 0.1 },
+        { class = "item_hlvr_grenade_frag", weight = 0.05 },
     }),
     -- has shotgun
     --wr.new({
@@ -99,18 +99,19 @@ local OutOfAmmoResupply = NewWeights({--wr.new({
 })
 
 local ScavangeMinMax = {
-    { min = 4, max = 9 }, -- pistol
-    { min = 9, max = 13 }, -- shotgun
-    { min = 25, max = 35 }, -- lightning dogs
-    { min = 12, max = 25 }, -- combat
-    { min = 18, max = 30 }, -- jeff
-    { min = 16, max = 25 }, -- chargers
-    { min = 17, max = 25 }, -- infinite
+    { min = 5, max = 8 }, -- pistol
+    { min = 10, max = 14 }, -- shotgun
+    { min = 35, max = 45 }, -- lightning dogs
+    { min = 17, max = 25 }, -- combat
+    { min = 26, max = 32 }, -- jeff
+    { min = 25, max = 35 }, -- chargers
+    { min = 20, max = 30 }, -- infinite
 }
 
 function Activate()
     StopListeningToAllGameEvents(thisEntity)
     ListenToGameEvent("player_stored_item_in_itemholder", PlayerStoredWristItem, thisEntity)
+    --ListenToGameEvent("player_death", OnPlayerDeath, thisEntity)
     print("registered game event listener")
 end
 
