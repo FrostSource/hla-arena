@@ -1,7 +1,4 @@
----@diagnostic disable: undefined-global, unused-function, unused-local
-
---local wr = require "weighted_random"
-DoIncludeScript("weighted_random.lua", thisEntity:GetPrivateScriptScope())
+require'util.weighted_random'
 
 local ResupplyEntName = "resupply_point_*"
 local ScavangeEntName = "scavange_point"
@@ -13,16 +10,14 @@ local ArenaTopRadius = 300
 
 local ResupplyItems = {
     -- has pistol
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.3 },
         { class = "item_healthvial", weight = 0.3 },
         { class = "item_hlvr_grenade_frag", weight = 0.05 },
     }),
     -- has shotgun
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.3 },
         { class = "item_hlvr_clip_shotgun_single", weight = 0.7 },
@@ -32,8 +27,7 @@ local ResupplyItems = {
         { class = "item_hlvr_grenade_frag", weight = 0.1 },
     }),
     -- has rapid (lighting dog)
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.35 },
         { class = "item_hlvr_clip_rapidfire", weight = 0.8 },
@@ -44,8 +38,7 @@ local ResupplyItems = {
         { class = "item_hlvr_grenade_frag", weight = 0.025 },
     }),
     -- combat
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.5 },
         { class = "item_hlvr_clip_rapidfire", weight = 0.8 },
@@ -56,8 +49,7 @@ local ResupplyItems = {
         { class = "item_hlvr_grenade_frag", weight = 0.2 },
     }),
     -- jeff
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.6 },
         { class = "item_hlvr_clip_rapidfire", weight = 0.6 },
@@ -68,8 +60,7 @@ local ResupplyItems = {
         { class = "item_hlvr_grenade_frag", weight = 0.1 },
     }),
     -- chargers
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 0.8 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.6 },
         { class = "item_hlvr_clip_rapidfire", weight = 0.8 },
@@ -80,8 +71,7 @@ local ResupplyItems = {
         { class = "item_hlvr_grenade_frag", weight = 0.3 },
     }),
     -- infinite
-    --wr.new({
-    NewWeights({
+    WeightedRandom({
         { class = "item_hlvr_clip_energygun", weight = 1.0 },
         { class = "item_hlvr_clip_energygun_multiple", weight = 0.5 },
         { class = "item_hlvr_clip_rapidfire", weight = 0.8 },
@@ -93,7 +83,7 @@ local ResupplyItems = {
     }),
 }
 
-local OutOfAmmoResupply = NewWeights({--wr.new({
+local OutOfAmmoResupply = WeightedRandom({
     { class = "item_hlvr_clip_energygun", weight = 1.0 },
     { class = "item_hlvr_clip_energygun_multiple", weight = 0.5 },
 })
@@ -108,14 +98,7 @@ local ScavangeMinMax = {
     { min = 20, max = 30 }, -- infinite
 }
 
-function Activate()
-    StopListeningToAllGameEvents(thisEntity)
-    ListenToGameEvent("player_stored_item_in_itemholder", PlayerStoredWristItem, thisEntity)
-    --ListenToGameEvent("player_death", OnPlayerDeath, thisEntity)
-    print("registered game event listener")
-end
-
-function PlayerStoredWristItem(context, data)
+local function PlayerStoredWristItem(data)
     if string.find(data.item_name, "screwdriver_item") then
         DoEntFire("relay_override_wrist_pockets", "Disable", "", 0, nil, nil)
     end
@@ -159,7 +142,7 @@ local function ResupplySpawn(class)
     --print("Resupply", class)
 end
 
-function Resupply()
+local function Resupply()
     --if stage == nil then
     --    stage = GetStage()
     --end
@@ -169,12 +152,13 @@ function Resupply()
     local amount = RandomInt(2,5)
     local stage = Clamp(GetStage(), 1, #ResupplyItems)--min(GetStage(), #ResupplyItems)
     for i = 1, amount do
-        local chosenItem = ResupplyItems[stage]:random().class
+        local chosenItem = ResupplyItems[stage]:Random().class
         ResupplySpawn(chosenItem)
     end
-    print("Resupply", "Resupply()", amount)
+    print("Resupply", "Resupply("..amount..")")
     --ResupplyStage(GetStage())
 end
+thisEntity:GetPrivateScriptScope().Resupply = Resupply
 
 local function ResupplyAmount(amount)
     for i = 1, amount do
@@ -182,26 +166,27 @@ local function ResupplyAmount(amount)
     end
 end
 
-function OutOfAmmo()
+local function OutOfAmmo()
     print("ArenaLogic", "OutOfAmmo")
     local centerPoint = Entities:FindByName(nil, ArenaCenterName):GetOrigin()
     -- check for pistol ammo waiting to be picked up
     if #Entities:FindAllByClassnameWithin("item_hlvr_clip_energygun", centerPoint, ArenaCenterRadius) < 3 then
         print("ArenaLogic", "OutOfAmmo", "Spawning Ammo")
-        local chosenItem = OutOfAmmoResupply:random().class
+        local chosenItem = OutOfAmmoResupply:Random().class
         ResupplySpawn(chosenItem)
     else
         print("ArenaLogic", "OutOfAmmo", "Ammo is already present")
     end
 end
+thisEntity:GetPrivateScriptScope().OutOfAmmo = OutOfAmmo
 
-function SpawnScavangeAmmo()
+local function SpawnScavangeAmmo()
     local stage = min(GetStage(), #ScavangeMinMax)
     local itemCount = RandomInt(ScavangeMinMax[stage].min, ScavangeMinMax[stage].max)
     local allPoints = Entities:FindAllByName(ScavangeEntName)
     for i = 1, itemCount do
         ::choose::
-        local chosenItem = ResupplyItems[stage]:random().class
+        local chosenItem = ResupplyItems[stage]:Random().class
         if chosenItem == "item_healthvial" and #Entities:FindAllByClassname("item_healthvial") > 1 then
             goto choose
         end
@@ -222,8 +207,9 @@ function SpawnScavangeAmmo()
     end
     print("Resupply", "SpawnScavangeAmmo()", itemCount)
 end
+thisEntity:GetPrivateScriptScope().SpawnScavangeAmmo = SpawnScavangeAmmo
 
-function RemoveUnwantedNPCs()
+local function RemoveUnwantedNPCs()
     local classes = {
         "npc_zombie_blind",
         "npc_combine_s",
@@ -243,8 +229,9 @@ function RemoveUnwantedNPCs()
     end
     print("ArenaLogic", "RemoveUnwantedNPCs()", count)
 end
+thisEntity:GetPrivateScriptScope().RemoveUnwantedNPCs = RemoveUnwantedNPCs
 
-function RemoveUnwantedRagdolls()
+local function RemoveUnwantedRagdolls()
     local models = {
         ["models/characters/combine_grunt/combine_grunt.vmdl"] = true,
         ["models/characters/combine_soldier_captain/combine_captain.vmdl"] = true,
@@ -264,8 +251,9 @@ function RemoveUnwantedRagdolls()
     end
     print("ArenaLogic", "RemoveUnwantedRagdolls()", count)
 end
+thisEntity:GetPrivateScriptScope().RemoveUnwantedRagdolls = RemoveUnwantedRagdolls
 
-function RemoveUnwantedItems()
+local function RemoveUnwantedItems()
     local classes = {
         "item_hlvr_clip_energygun",
         "item_hlvr_clip_energygun_multiple",
@@ -284,8 +272,9 @@ function RemoveUnwantedItems()
         end
     end
 end
+thisEntity:GetPrivateScriptScope().RemoveUnwantedItems = RemoveUnwantedItems
 
-function ForceRunnersReviveNearest()
+local function ForceRunnersReviveNearest()
     local runners = Entities:FindAllByClassname("npc_headcrab_runner")
     -- runners may find same body but game should resolve this
     local ragdolls = Entities:FindAllByClassname("prop_ragdoll")
@@ -317,8 +306,9 @@ function ForceRunnersReviveNearest()
     --print("NEAREST", nearest)
     --debugoverlay:Sphere(nearest:GetOrigin(), 30, 255, 0, 0, 255, true, 5)
 end
+thisEntity:GetPrivateScriptScope().ForceRunnersReviveNearest = ForceRunnersReviveNearest
 
-function PushNaughtyItems()
+local function PushNaughtyItems()
     local classes = {
         "item_hlvr_clip_energygun",
         "item_hlvr_clip_energygun_multiple",
@@ -342,8 +332,9 @@ function PushNaughtyItems()
         end
     end
 end
+thisEntity:GetPrivateScriptScope().PushNaughtyItems = PushNaughtyItems
 
-function FixCombineWithoutGrenade()
+local function FixCombineWithoutGrenade()
     local combines = Entities:FindAllByClassname("npc_combine_s")
     for _, combine in ipairs(combines) do
         for _, child in ipairs(combine:GetChildren()) do
@@ -355,8 +346,9 @@ function FixCombineWithoutGrenade()
         end
     end
 end
+thisEntity:GetPrivateScriptScope().FixCombineWithoutGrenade = FixCombineWithoutGrenade
 
-function DebugBackup()
+local function DebugBackup()
     local stage = GetStage()
     if stage > 2 then
         DoEntFire("template_arena_item_shotgun", "ForceSpawn", "", 0, nil, nil)
@@ -365,4 +357,31 @@ function DebugBackup()
         DoEntFire("template_arena_item_rapid", "ForceSpawn", "", 0, nil, nil)
     end
 end
+thisEntity:GetPrivateScriptScope().DebugBackup = DebugBackup
 
+
+
+local function ready(saveLoaded)
+    ListenToGameEvent("player_stored_item_in_itemholder", PlayerStoredWristItem, nil)
+    --ListenToGameEvent("player_death", OnPlayerDeath, thisEntity)
+end
+
+-- Fix for script executing twice on restore.
+-- This binds to the new local ready function on second execution.
+if thisEntity:GetPrivateScriptScope().savewasloaded then
+    thisEntity:SetContextThink("init", function() ready(true) end, 0)
+end
+
+---@param activateType "0"|"1"|"2"
+function Activate(activateType)
+    -- If game is being restored then set the script scope ready for next execution.
+    if activateType == 2 then
+        thisEntity:GetPrivateScriptScope().savewasloaded = true
+        return
+    end
+    -- Otherwise just run the ready function after "instant" delay (player will be ready).
+    thisEntity:SetContextThink("init", function() ready(false) end, 0)
+end
+
+-- Add local functions to private script scope to avoid environment pollution.
+-- local _a,_b=1,thisEntity:GetPrivateScriptScope()while true do local _c,_d=debug.getlocal(1,_a)if _c==nil then break end;if type(_d)=='function'then _b[_c]=_d end;_a=1+_a end
