@@ -1,7 +1,7 @@
 require'util.weighted_random'
 
 local ResupplyEntName = "resupply_point_*"
-local ScavangeEntName = "scavange_point"
+local ScavengeEntName = "scavenge_point"
 local ArenaCenterName = "@arena_center"
 local ArenaTopName = "@arena_top"
 local ArenaCenterRadius = 800
@@ -183,7 +183,7 @@ thisEntity:GetPrivateScriptScope().OutOfAmmo = OutOfAmmo
 local function SpawnScavangeAmmo()
     local stage = min(GetStage(), #ScavangeMinMax)
     local itemCount = RandomInt(ScavangeMinMax[stage].min, ScavangeMinMax[stage].max)
-    local allPoints = Entities:FindAllByName(ScavangeEntName)
+    local allPoints = Entities:FindAllByName(ScavengeEntName)
     for i = 1, itemCount do
         ::choose::
         local chosenItem = ResupplyItems[stage]:Random().class
