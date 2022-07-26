@@ -3,3 +3,5 @@ _bakeresourcecache/
 __test*
 maps/arena_backup.vmap
 maps/arena_recovery.vmap
+materials/BloodOverlays/*
+maps/arena_backup2.vmap
