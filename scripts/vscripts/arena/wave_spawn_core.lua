@@ -1,4 +1,3 @@
-
 --[[
     This should all probably be moved to a core script which is called by prefab ents
 ]]
@@ -216,14 +215,15 @@ end
 ---Needs to be named different from Spawn
 ---@param base table
 ---@param properties table
----@param attacher AttacherItems
+---@param attacher AttacherItems|nil
+---@param spawn_target string
 ---@return EntityHandle
-local function _Spawn(base, properties, attacher)
+local function _Spawn(base, properties, attacher, spawn_target)
     -- print("SPAWN FUNCTION: ", base, properties, attacher)
     if base == nil or properties == nil then return nil end
     print("_Spawn", DEBUG[base], DEBUG[properties])
 
-    local points = Entities:FindAllByName(prefab_name .. "spawn_point")
+    local points = Entities:FindAllByName(spawn_target)
     local point = points[RandomInt(1, #points)]
     properties = vlua.tableadd(clone(properties), base)
     properties.origin = point:GetOrigin()
@@ -250,55 +250,79 @@ local function _Spawn(base, properties, attacher)
             -- should this be bool?
             attach_properties.mark_as_removable = "0"
         end
-        SpawnEntityFromTableSynchronous(attach_properties.classname, attach_properties)
+        SpawnEntityFromTableSynchronous(
+            attach_properties.classname,
+            attach_properties
+        )
     end
 
     return ent
 end
 
-local function SpawnCombine(properties)
-    _Spawn(COMBINE.BASE, properties, ATTACHED_MANAGER.COMBINE)
+---Spawn a combine.
+---@param properties table
+---@param spawn_target string
+local function SpawnCombine(properties, spawn_target)
+    _Spawn(
+        COMBINE.BASE,
+        properties,
+        ATTACHED_MANAGER.COMBINE,
+        spawn_target
+    )
 end
-local function SpawnXen(properties)
-    _Spawn(XEN.BASE, properties, (properties == XEN.ZOMBIE) and ATTACHED_MANAGER.ZOMBIE or nil)
+---Spawn a xen
+---@param properties table
+---@param spawn_target string
+local function SpawnXen(properties, spawn_target)
+    _Spawn(
+        XEN.BASE,
+        properties,
+        (properties == XEN.ZOMBIE) and ATTACHED_MANAGER.ZOMBIE or nil,
+        spawn_target
+    )
 end
 
-local function SpawnGrunt()
+local function SpawnGrunt(spawn_target)
     local c = COMBINE.GRUNT_NOTANK
     if RandomInt(1,6) <= 2 then c = COMBINE.GRUNT end
-    SpawnCombine(c)
+    SpawnCombine(c, spawn_target)
 end
-local function SpawnOfficer()
-    SpawnCombine(COMBINE.OFFICER)
+local function SpawnOfficer(spawn_target)
+    SpawnCombine(COMBINE.OFFICER, spawn_target)
 end
-local function SpawnSuppressor()
-    SpawnCombine(COMBINE.SUPPRESSOR)
+local function SpawnSuppressor(spawn_target)
+    SpawnCombine(COMBINE.SUPPRESSOR, spawn_target)
 end
-local function SpawnCharger()
-    SpawnCombine(COMBINE.CHARGER)
+local function SpawnCharger(spawn_target)
+    SpawnCombine(COMBINE.CHARGER, spawn_target)
 end
 
-local function SpawnZombie()
+local function SpawnZombie(spawn_target)
     -- consider weighting chance
     XEN.ZOMBIE.bloater_position = RandomInt(-1, 4)
     -- 131588 is spawnflags with don't drop crab
     -- currently 50/50 chance
     XEN.ZOMBIE.spawnflags = ""..(516 + (RandomInt(0,1) *  131072))
-    print("Zombie spawnflag " .. XEN.ZOMBIE.spawnflags)
-    SpawnXen(XEN.ZOMBIE)
+    -- print("Zombie spawnflag " .. XEN.ZOMBIE.spawnflags)
+    SpawnXen(XEN.ZOMBIE, spawn_target)
 end
-local function SpawnHeadcrabBlack()
-    SpawnXen(XEN.HEADCRAB_BLACK)
+local function SpawnHeadcrabBlack(spawn_target)
+    SpawnXen(XEN.HEADCRAB_BLACK, spawn_target)
 end
-local function SpawnHeadcrabRunner()
-    local ent = SpawnXen(XEN.HEADCRAB_RUNNER)
+local function SpawnHeadcrabRunner(spawn_target)
+    local ent = SpawnXen(XEN.HEADCRAB_RUNNER, spawn_target)
     if ent ~= nil then
         ent:AddOutput("OnReviverInhabit", "@reviver_relay_inhabit", "Trigger")
         ent:AddOutput("OnReviverEscape", "@reviver_relay_escape", "Trigger")
     end
 end
 
-function Precache(context)
+local hasPrecached = false
+function WavePrecache(context)
+    -- Since there are 4 wave spawners this early exit will cut down on caching
+    if hasPrecached then return end
+    hasPrecached = true
+
     print("Precaching wave spawner")
     local properties
     local count = 0
@@ -325,9 +349,12 @@ function Precache(context)
     print("Precached "..count.." NPCs")
 end
 
--- all OnDeath send to prefab OnNPCDeath
--- reviver OnReviverInhabit @reviver_relay_inhabit Trigger
--- reviver OnReviverEscape @reviver_relay_escape Trigger
-
--- Add local functions to private script scope to avoid environment pollution.
-local _a,_b=1,thisEntity:GetPrivateScriptScope()while true do local _c,_d=debug.getlocal(1,_a)if _c==nil then break end;if type(_d)=='function'then _b[_c]=_d end;_a=1+_a end
+return {
+    SpawnGrunt = SpawnGrunt,
+    SpawnOfficer = SpawnOfficer,
+    SpawnSuppressor = SpawnSuppressor,
+    SpawnCharger = SpawnCharger,
+    SpawnZombie = SpawnZombie,
+    SpawnHeadcrabBlack = SpawnHeadcrabBlack,
+    SpawnHeadcrabRunner = SpawnHeadcrabRunner,
+}
