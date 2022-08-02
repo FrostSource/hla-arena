@@ -199,10 +199,6 @@ for key, value in pairs(XEN) do
 end
 -- End debug
 
-local name = "logic"
-local prefab_name = thisEntity:GetName():sub(1, thisEntity:GetName():len() - name:len())
-print("Prefab name for ["..thisEntity:GetName().."] = "..prefab_name)
-
 ---Clone a table.
 ---@param tbl table
 ---@return table
@@ -231,7 +227,6 @@ local function _Spawn(base, properties, attacher, spawn_target)
     properties.targetname = DoUniqueString("wave_spawned")
     -- util.PrintTable(properties)
     local ent = SpawnEntityFromTableSynchronous(properties.classname, properties)
-    ent:AddOutput("OnDeath", thisEntity:GetName(), "FireUser1")
 
     if attacher then
         local attach_properties = clone(ATTACHED_MANAGER.BASE)
@@ -262,59 +257,88 @@ end
 ---Spawn a combine.
 ---@param properties table
 ---@param spawn_target string
-local function SpawnCombine(properties, spawn_target)
-    _Spawn(
+---@param spawner EntityHandle
+---@return EntityHandle
+local function SpawnCombine(properties, spawn_target, spawner)
+    local ent = _Spawn(
         COMBINE.BASE,
         properties,
         ATTACHED_MANAGER.COMBINE,
         spawn_target
     )
+    ent:AddOutput("OnDeath", spawner:GetName(), "FireUser1")
+    return ent
 end
 ---Spawn a xen
 ---@param properties table
 ---@param spawn_target string
-local function SpawnXen(properties, spawn_target)
-    _Spawn(
+---@param spawner EntityHandle
+---@return EntityHandle
+local function SpawnXen(properties, spawn_target, spawner)
+    local ent = _Spawn(
         XEN.BASE,
         properties,
         (properties == XEN.ZOMBIE) and ATTACHED_MANAGER.ZOMBIE or nil,
         spawn_target
     )
+    ent:AddOutput("OnDeath", spawner:GetName(), "FireUser1")
+    return ent
 end
-
-local function SpawnGrunt(spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnGrunt(spawn_target, me)
     local c = COMBINE.GRUNT_NOTANK
     if RandomInt(1,6) <= 2 then c = COMBINE.GRUNT end
-    SpawnCombine(c, spawn_target)
+    return SpawnCombine(c, spawn_target, me)
 end
-local function SpawnOfficer(spawn_target)
-    SpawnCombine(COMBINE.OFFICER, spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnOfficer(spawn_target, me)
+    return SpawnCombine(COMBINE.OFFICER, spawn_target, me)
 end
-local function SpawnSuppressor(spawn_target)
-    SpawnCombine(COMBINE.SUPPRESSOR, spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnSuppressor(spawn_target, me)
+    return SpawnCombine(COMBINE.SUPPRESSOR, spawn_target, me)
 end
-local function SpawnCharger(spawn_target)
-    SpawnCombine(COMBINE.CHARGER, spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnCharger(spawn_target, me)
+    return SpawnCombine(COMBINE.CHARGER, spawn_target, me)
 end
 
-local function SpawnZombie(spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnZombie(spawn_target, me)
     -- consider weighting chance
     XEN.ZOMBIE.bloater_position = RandomInt(-1, 4)
     -- 131588 is spawnflags with don't drop crab
     -- currently 50/50 chance
     XEN.ZOMBIE.spawnflags = ""..(516 + (RandomInt(0,1) *  131072))
     -- print("Zombie spawnflag " .. XEN.ZOMBIE.spawnflags)
-    SpawnXen(XEN.ZOMBIE, spawn_target)
+    return SpawnXen(XEN.ZOMBIE, spawn_target, me)
 end
-local function SpawnHeadcrabBlack(spawn_target)
-    SpawnXen(XEN.HEADCRAB_BLACK, spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnHeadcrabBlack(spawn_target, me)
+    return SpawnXen(XEN.HEADCRAB_BLACK, spawn_target, me)
 end
-local function SpawnHeadcrabRunner(spawn_target)
-    local ent = SpawnXen(XEN.HEADCRAB_RUNNER, spawn_target)
+---@param spawn_target string
+---@param me EntityHandle
+---@return EntityHandle
+local function SpawnHeadcrabRunner(spawn_target, me)
+    local ent = SpawnXen(XEN.HEADCRAB_RUNNER, spawn_target, me)
     if ent ~= nil then
         ent:AddOutput("OnReviverInhabit", "@reviver_relay_inhabit", "Trigger")
         ent:AddOutput("OnReviverEscape", "@reviver_relay_escape", "Trigger")
     end
+    return ent
 end
 
 local hasPrecached = false

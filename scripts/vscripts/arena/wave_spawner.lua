@@ -9,26 +9,26 @@ print("Prefab name for ["..thisEntity:GetName().."] = "..prefab_name)
 local spawn_target = prefab_name .. "spawn_point"
 
 local function SpawnGrunt()
-    wave_spawner.SpawnGrunt(spawn_target)
+    wave_spawner.SpawnGrunt(spawn_target, thisEntity)
 end
 local function SpawnOfficer()
-    wave_spawner.SpawnOfficer(spawn_target)
+    wave_spawner.SpawnOfficer(spawn_target, thisEntity)
 end
 local function SpawnSuppressor()
-    wave_spawner.SpawnSuppressor(spawn_target)
+    wave_spawner.SpawnSuppressor(spawn_target, thisEntity)
 end
 local function SpawnCharger()
-    wave_spawner.SpawnCharger(spawn_target)
+    wave_spawner.SpawnCharger(spawn_target, thisEntity)
 end
 
 local function SpawnZombie()
-    wave_spawner.SpawnZombie(spawn_target)
+    wave_spawner.SpawnZombie(spawn_target, thisEntity)
 end
 local function SpawnHeadcrabBlack()
-    wave_spawner.SpawnHeadcrabBlack(spawn_target)
+    wave_spawner.SpawnHeadcrabBlack(spawn_target, thisEntity)
 end
 local function SpawnHeadcrabRunner()
-    wave_spawner.SpawnHeadcrabRunner(spawn_target)
+    wave_spawner.SpawnHeadcrabRunner(spawn_target, thisEntity)
 end
 
 function Precache(context)

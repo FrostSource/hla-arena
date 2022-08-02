@@ -11,6 +11,7 @@
 				[
 					{
 						_class = "RenderMeshFile"
+						name = "body"
 						filename = "models/combine_solider_fan/grunt_mesh.fbx"
 						import_scale = 1.0
 						import_filter = 
@@ -24,6 +25,47 @@
 								"renderMeshShape18",
 								"renderMeshShape19",
 								"renderMeshShape16",
+								"renderMeshShape17",
+							]
+						}
+					},
+					{
+						_class = "RenderMeshFile"
+						name = "helmet"
+						filename = "models/combine_solider_fan/grunt_mesh.fbx"
+						import_scale = 1.0
+						import_filter = 
+						{
+							exclude_by_default = false
+							exception_list = 
+							[
+								"renderMeshShape2",
+								"renderMeshShape3",
+								"renderMeshShape1",
+								"renderMeshShape18",
+								"renderMeshShape19",
+								"renderMeshShape17",
+								"renderMeshShape0",
+							]
+						}
+					},
+					{
+						_class = "RenderMeshFile"
+						name = "brains"
+						filename = "models/combine_solider_fan/grunt_mesh.fbx"
+						import_scale = 1.0
+						import_filter = 
+						{
+							exclude_by_default = false
+							exception_list = 
+							[
+								"renderMeshShape2",
+								"renderMeshShape3",
+								"renderMeshShape1",
+								"renderMeshShape0",
+								"renderMeshShape16",
+								"renderMeshShape17",
+								"renderMeshShape18",
 							]
 						}
 					},
@@ -42,12 +84,85 @@
 								to = "models/combine_solider_fan/combine_grunt_fan.vmat"
 							},
 							{
-								from = "rendermeshshape17.vmat"
+								from = "rendermeshshape16.vmat"
+								to = "models/characters/combine_helmet/materials/combine_helmet_breakable_blood.vmat"
+							},
+							{
+								from = "rendermeshshape19.vmat"
 								to = "models/characters/combine_helmet/materials/combine_helmet_breakable_blood.vmat"
 							},
 						]
 						use_global_default = false
 						global_default_material = ""
+					},
+					{
+						_class = "MaterialGroup"
+						name = "bloody"
+						remaps = 
+						[
+							{
+								from = "models/combine_solider_fan/combine_grunt_fan.vmat"
+								to = "models/combine_solider_fan/combine_grunt_fan_bloody.vmat"
+							},
+							{
+								from = "models/characters/combine_helmet/materials/combine_helmet_breakable_blood.vmat"
+								to = "models/characters/combine_helmet/materials/combine_helmet_breakable_blood.vmat"
+							},
+							{
+								from = "models/characters/combine_helmet/materials/combine_helmet_breakable.vmat"
+								to = "models/characters/combine_helmet/materials/combine_helmet_breakable_blood.vmat"
+							},
+						]
+					},
+				]
+			},
+			{
+				_class = "PhysicsJointList"
+				children = 
+				[
+					{
+						_class = "Prefab"
+						target_file = "models/combine_solider_fan/physicsjointlist.vmdl_prefab"
+					},
+				]
+			},
+			{
+				_class = "PhysicsShapeList"
+				children = 
+				[
+					{
+						_class = "Prefab"
+						target_file = "models/combine_solider_fan/physicsshapelist.vmdl_prefab"
+					},
+				]
+			},
+			{
+				_class = "BodyGroupList"
+				children = 
+				[
+					{
+						_class = "BodyGroup"
+						name = "DamageLevel"
+						children = 
+						[
+							{
+								_class = "BodyGroupChoice"
+								name = "Helmet"
+								meshes = 
+								[
+									"helmet",
+								]
+							},
+							{
+								_class = "BodyGroupChoice"
+								name = "Brains"
+								meshes = 
+								[
+									"brains",
+								]
+							},
+						]
+						hidden_in_tools = false
 					},
 				]
 			},
